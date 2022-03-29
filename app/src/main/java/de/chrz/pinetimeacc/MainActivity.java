@@ -17,13 +17,15 @@ import de.chrz.pinetimeacc.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static BLEManager bleManager = new BLEManager();
+    public BLEManager bleManager;
 
     private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
     private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if(bleManager == null) bleManager = new BLEManager(getApplicationContext());
+
         super.onCreate(savedInstanceState);
 
         ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());

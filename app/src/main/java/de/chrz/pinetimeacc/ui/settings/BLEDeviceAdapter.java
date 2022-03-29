@@ -1,6 +1,7 @@
 package de.chrz.pinetimeacc.ui.settings;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,9 +23,11 @@ public class BLEDeviceAdapter extends
 
     private final BLEManager manager;
     BLEDevice activeDevice = null;
+    Activity activity;
 
-    public BLEDeviceAdapter(BLEManager manager) {
+    public BLEDeviceAdapter(BLEManager manager, Activity activity) {
         this.manager = manager;
+        this.activity = activity;
         this.manager.addListener(this);
     }
 
@@ -75,19 +78,23 @@ public class BLEDeviceAdapter extends
     @Override
     public void deviceUpdated(BLEDevice device) {
         activeDevice = manager.getActiveDevice();
-        notifyDataSetChanged();
+        activity.runOnUiThread(this::notifyDataSetChanged);
     }
 
     @SuppressLint("NotifyDataSetChanged")
     @Override
     public void deviceListUpdated() {
-        notifyDataSetChanged();
+        activity.runOnUiThread(this::notifyDataSetChanged);
     }
 
     @Override
-    public void individualDeviceUpdated(BLEDevice device) {
-        // Already handled in deviceUpdated
-    }
+    public void individualDeviceUpdated(BLEDevice device) { }
+
+    @Override
+    public void dataIncoming(double[] data) { }
+
+    @Override
+    public void individualDataIncoming(double[] data) { }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView nameTextView;

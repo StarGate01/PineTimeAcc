@@ -1,7 +1,7 @@
 package de.chrz.pinetimeacc.ui.home;
 
+import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -11,15 +11,18 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 
 import de.chrz.pinetimeacc.BLEDevice;
 import de.chrz.pinetimeacc.BLEManagerChangedListener;
@@ -29,20 +32,18 @@ import de.chrz.pinetimeacc.databinding.FragmentHomeBinding;
 
 public class HomeFragment extends Fragment implements BLEManagerChangedListener {
 
-    private final Handler handler = new Handler();
-    private Runnable updateTimer;
-    private LineGraphSeries<DataPoint> seriesX;
-    Random rand = new Random();
-    int seriesCount = 30;
+    private List<LineGraphSeries<DataPoint>> series;
+    private int seriesTime = 100;
+    private int seriesCount = 0;
 
-    private FragmentHomeBinding binding;
     private HomeViewModel homeViewModel;
+    private GraphView graph;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
 
-        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        FragmentHomeBinding binding = FragmentHomeBinding.inflate(inflater, container, false);
         View v = binding.getRoot();
 
         final TextView textTitle = binding.textActivetitle;
@@ -52,15 +53,40 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
         final TextView textFreq = binding.textFreq;
         homeViewModel.getFreq().observe(getViewLifecycleOwner(), textFreq::setText);
 
-        GraphView graph = v.findViewById(R.id.graph);
-        seriesX = new LineGraphSeries<>(generateData());
-        graph.addSeries(seriesX);
+        graph = v.findViewById(R.id.graph);
+        series = new ArrayList<>();
+        for(int i=0; i<3; i++) {
+            LineGraphSeries<DataPoint> s = new LineGraphSeries<>();
+            series.add(s);
+            graph.addSeries(s);
+        }
+        series.get(0).setColor(Color.RED);
+        series.get(0).setTitle("X");
+        series.get(1).setColor(Color.GREEN);
+        series.get(1).setTitle("Y");
+        series.get(2).setColor(Color.YELLOW);
+        series.get(2).setTitle("Z");
+
+        LineGraphSeries<DataPoint> sn = new LineGraphSeries<>();
+        series.add(sn);
+        graph.getSecondScale().addSeries(sn);
+        graph.getSecondScale().setMinY(0);
+        graph.getSecondScale().setMaxY(2);
+        sn.setColor(Color.BLUE);
+        sn.setTitle("Mag");
+        graph.getGridLabelRenderer().setVerticalLabelsSecondScaleColor(Color.BLUE);
+
+        graph.getLegendRenderer().setVisible(true);
+        graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.BOTTOM);
+        graph.getViewport().setYAxisBoundsManual(true);
+        graph.getViewport().setMaxY(1.2);
+        graph.getViewport().setMinY(-1.2);
         graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setMaxX(seriesTime);
         graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(seriesCount);
 
         EditText timeWindow = v.findViewById(R.id.edit_timewindow);
-        timeWindow.setText(String.format(Locale.getDefault(), "%d", seriesCount));
+        timeWindow.setText(String.format(Locale.getDefault(), "%d", seriesTime));
         timeWindow.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence,
@@ -71,66 +97,47 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
                                       int before, int count) {
                 try {
                     int c = Integer.parseInt(charSequence.toString());
-                    seriesCount = Math.max(10, c);
+                    seriesTime = Math.max(10, c);
                 } catch (NumberFormatException e) {
-                    seriesCount = 10;
+                    seriesTime = 10;
                 }
-                graph.getViewport().setMaxX(seriesCount);
+
+                graph.getViewport().setMinX(0);
+                graph.getViewport().setMaxX(seriesTime);
             }
 
             @Override
             public void afterTextChanged(Editable editable) { }
         });
 
-        MainActivity.bleManager.addListener(this);
+        SwitchCompat switchXYZ = v.findViewById(R.id.switch_xyzdata);
+        switchXYZ.setOnCheckedChangeListener((compoundButton, b) -> {
+
+        });
+        SwitchCompat switchMag = v.findViewById(R.id.switch_magnitude);
+        switchMag.setOnCheckedChangeListener((compoundButton, b) -> {
+
+        });
+
+        MainActivity main = (MainActivity)getActivity();
+        if(main != null) {
+            main.bleManager.addListener(this);
+        }
 
         updateTitle();
 
         return v;
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        updateTimer = new Runnable() {
-            @Override
-            public void run() {
-                seriesX.resetData(generateData());
-                handler.postDelayed(this, 300);
-            }
-        };
-        handler.postDelayed(updateTimer, 300);
-    }
-
-    @Override
-    public void onPause() {
-        handler.removeCallbacks(updateTimer);
-        super.onPause();
-    }
-
-    private DataPoint[] generateData() {
-        DataPoint[] values = new DataPoint[seriesCount];
-        for (int i=0; i<seriesCount; i++) {
-            double x = i;
-            double f = rand.nextDouble()*0.15+0.3;
-            double y = Math.sin(i*f+2) + rand.nextDouble()*0.3;
-            DataPoint v = new DataPoint(x, y);
-            values[i] = v;
-        }
-        return values;
-    }
-
     private void updateTitle() {
-        BLEDevice activeDevice = MainActivity.bleManager.getActiveDevice();
-        if(activeDevice != null) {
-            homeViewModel.getTitle().setValue(activeDevice.getName());
-        } else {
-            homeViewModel.getTitle().setValue(getResources().getString(R.string.no_device_connected));
+        MainActivity main = (MainActivity)getActivity();
+        if(main != null) {
+            BLEDevice activeDevice = main.bleManager.getActiveDevice();
+            if (activeDevice != null) {
+                homeViewModel.getTitle().postValue(activeDevice.getName());
+            } else {
+                homeViewModel.getTitle().postValue(getResources().getString(R.string.no_device_connected));
+            }
         }
     }
 
@@ -142,6 +149,26 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
     @Override
     public void individualDeviceUpdated(BLEDevice device) {
         updateTitle();
+    }
+
+    @Override
+    public void individualDataIncoming(double[] data) {
+        int i = 0;
+        if(seriesCount >= seriesTime) {
+            for (LineGraphSeries<DataPoint> s: series) {
+                s.resetData(new DataPoint[] { new DataPoint(0, data[i]) });
+                i++;
+            }
+            seriesCount = 1;
+        } else {
+            for (LineGraphSeries<DataPoint> s: series) {
+                s.appendData(new DataPoint(seriesCount, data[i]), true, seriesCount + 1);
+                i++;
+            }
+            seriesCount++;
+        }
+        graph.getViewport().setMinX(0);
+        graph.getViewport().setMaxX(seriesTime);
     }
 
 }

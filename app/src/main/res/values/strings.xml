@@ -12,4 +12,7 @@
     <string name="time_window">Time window:</string>
     <string name="time_window2">Time window</string>
     <string name="no_device_connected">No device connected</string>
+    <string name="samples">samples</string>
+    <string name="show_xyz_data">Show XYZ Data</string>
+    <string name="show_magnitude">Show Magnitude</string>
 </resources>

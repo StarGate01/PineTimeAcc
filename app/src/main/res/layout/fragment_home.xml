@@ -87,7 +87,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:orientation="horizontal">
 
@@ -115,8 +115,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/ms" />
+                android:text="@string/samples" />
         </LinearLayout>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switch_xyzdata"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:minHeight="48dp"
+            android:padding="10dp"
+            android:text="@string/show_xyz_data" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switch_magnitude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:minHeight="48dp"
+            android:padding="10dp"
+            android:text="@string/show_magnitude" />
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

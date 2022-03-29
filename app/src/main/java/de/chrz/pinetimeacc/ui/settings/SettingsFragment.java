@@ -15,7 +15,7 @@ import de.chrz.pinetimeacc.R;
 
 public class SettingsFragment extends Fragment {
 
-    private static BLEDeviceAdapter adapter = null;
+    private BLEDeviceAdapter adapter = null;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -23,11 +23,15 @@ public class SettingsFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_settings, container, false);
 
         RecyclerView rvDevices = v.findViewById(R.id.rv_devices);
-        if(adapter == null) adapter = new BLEDeviceAdapter(MainActivity.bleManager);
-        rvDevices.setAdapter(adapter);
-        rvDevices.setLayoutManager(new LinearLayoutManager(this.getContext()));
 
-        MainActivity.bleManager.beginScan();
+        MainActivity main = (MainActivity)getActivity();
+        if(main != null) {
+            if (adapter == null)
+                adapter = new BLEDeviceAdapter(main.bleManager, this.getActivity());
+            rvDevices.setAdapter(adapter);
+            rvDevices.setLayoutManager(new LinearLayoutManager(this.getContext()));
+            main.bleManager.beginScan();
+        }
 
         return v;
     }

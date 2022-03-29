@@ -7,9 +7,9 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.content.Context;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -18,6 +18,7 @@ public class BLEManager extends ScanCallback implements BLEDeviceChangedListener
     private final BluetoothLeScanner scanner;
     private final List<ScanFilter> filters;
     private final ScanSettings settings;
+    private final Context context;
 
     private final List<BLEDevice> devices;
     private final List<BLEManagerChangedListener> listeners;
@@ -49,7 +50,9 @@ public class BLEManager extends ScanCallback implements BLEDeviceChangedListener
 
     }
 
-    public BLEManager() {
+    public BLEManager(Context context) {
+        this.context = context;
+
         devices = new ArrayList<>();
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -93,6 +96,12 @@ public class BLEManager extends ScanCallback implements BLEDeviceChangedListener
         }
     }
 
+    private void invokeDataIncoming(double[] data) {
+        for (BLEManagerChangedListener listener: listeners) {
+            listener.individualDataIncoming(data);
+        }
+    }
+
     public void beginScan() {
         taskRunner.executeAsync(new ScanTask(scanner, filters, settings, this), (result) -> { });
     }
@@ -103,15 +112,17 @@ public class BLEManager extends ScanCallback implements BLEDeviceChangedListener
     }
 
     @Override
+    public void dataIncoming(double[] data) { invokeDataIncoming(data); }
+
+    @Override
     public void onScanResult(int callbackType, ScanResult result) {
         BluetoothDevice d = result.getDevice();
         try {
             if(d.getName() != null && !d.getName().isEmpty()) {
-                BLEDevice device = new BLEDevice(d.getName(), d.getAddress(), d);
+                BLEDevice device = new BLEDevice(d.getName(), d.getAddress(), d, context);
                 if (!devices.contains(device)) {
                     devices.add(device);
                     device.addListener(this);
-                    Collections.sort(devices);
                     invokeListUpdated();
                 }
             }
