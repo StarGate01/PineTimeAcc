@@ -13,14 +13,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class BLEManager extends ScanCallback {
+public class BLEManager extends ScanCallback implements BLEDeviceChangedListener {
 
     private final BluetoothLeScanner scanner;
     private final List<ScanFilter> filters;
     private final ScanSettings settings;
 
     private final List<BLEDevice> devices;
-    private BLEManagerChangedListener listener;
+    private final List<BLEManagerChangedListener> listeners;
 
     static TaskRunner taskRunner = new TaskRunner();
 
@@ -52,6 +52,9 @@ public class BLEManager extends ScanCallback {
     public BLEManager() {
         devices = new ArrayList<>();
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+
+        listeners = new ArrayList<>();
+
         filters = new ArrayList<>();
         settings = new ScanSettings.Builder()
                 .setScanMode(ScanSettings.SCAN_MODE_BALANCED)
@@ -64,12 +67,39 @@ public class BLEManager extends ScanCallback {
         return devices;
     }
 
-    public void setListener(BLEManagerChangedListener listener) {
-        this.listener = listener;
+    public BLEDevice getActiveDevice() {
+        return devices.stream().filter(BLEDevice::isConnected).findFirst().orElse(null);
+    }
+
+    public void addListener(BLEManagerChangedListener listener) {
+        if(!listeners.contains(listener)) listeners.add(listener);
+    }
+
+    public void removeListener(BLEManagerChangedListener listener) {
+        try {
+            listeners.remove(listener);
+        } catch (Exception ignored) { }
+    }
+
+    private void invokeListUpdated() {
+        for (BLEManagerChangedListener listener: listeners) {
+            listener.deviceListUpdated();
+        }
+    }
+
+    private void invokeDeviceUpdated(BLEDevice device) {
+        for (BLEManagerChangedListener listener: listeners) {
+            listener.individualDeviceUpdated(device);
+        }
     }
 
     public void beginScan() {
         taskRunner.executeAsync(new ScanTask(scanner, filters, settings, this), (result) -> { });
+    }
+
+    @Override
+    public void deviceUpdated(BLEDevice device) {
+        invokeDeviceUpdated(device);
     }
 
     @Override
@@ -80,8 +110,9 @@ public class BLEManager extends ScanCallback {
                 BLEDevice device = new BLEDevice(d.getName(), d.getAddress(), d);
                 if (!devices.contains(device)) {
                     devices.add(device);
+                    device.addListener(this);
                     Collections.sort(devices);
-                    listener.deviceListUpdated();
+                    invokeListUpdated();
                 }
             }
         } catch (SecurityException ignored) { }

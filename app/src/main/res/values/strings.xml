@@ -4,4 +4,12 @@
     <string name="title_settings">Settings</string>
     <string name="available_ble_devices">Available BLE Devices</string>
     <string name="scan">Scan</string>
+    <string name="no_device">No Device</string>
+    <string name="ms">ms</string>
+    <string name="hz">Hz</string>
+    <string name="peak_delta">Peak delta:</string>
+    <string name="frequency">Frequency:</string>
+    <string name="time_window">Time window:</string>
+    <string name="time_window2">Time window</string>
+    <string name="no_device_connected">No device connected</string>
 </resources>

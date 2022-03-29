@@ -21,14 +21,11 @@ public class BLEDeviceAdapter extends
     RecyclerView.Adapter<BLEDeviceAdapter.ViewHolder> implements BLEDeviceChangedListener, BLEManagerChangedListener {
 
     private final BLEManager manager;
+    BLEDevice activeDevice = null;
 
     public BLEDeviceAdapter(BLEManager manager) {
         this.manager = manager;
-        this.manager.setListener(this);
-    }
-
-    private void updateButtonText(Button button, BLEDevice device) {
-        button.setText(device.isConnected() ? "Disconnect" : "Connect");
+        this.manager.addListener(this);
     }
 
     @NonNull
@@ -49,7 +46,13 @@ public class BLEDeviceAdapter extends
         TextView addressTextView = holder.addressTextView;
         addressTextView.setText(device.getAddress());
         Button connectButton = holder.connectButton;
-        updateButtonText(connectButton, device);
+        connectButton.setText(device.isConnected() ? "Disconnect" : "Connect");
+
+        if(activeDevice != null) {
+            connectButton.setEnabled(device == activeDevice);
+        } else {
+            connectButton.setEnabled(true);
+        }
 
         connectButton.setOnClickListener(view -> {
             if(!device.isConnected()) {
@@ -59,23 +62,31 @@ public class BLEDeviceAdapter extends
             }
         });
 
-        device.setListener(this);
+        device.addListener(this);
     }
 
     @Override
     public int getItemCount() {
+        activeDevice = manager.getActiveDevice();
         return manager.getDevices().size();
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     @Override
     public void deviceUpdated(BLEDevice device) {
-        notifyItemChanged(manager.getDevices().indexOf(device));
+        activeDevice = manager.getActiveDevice();
+        notifyDataSetChanged();
     }
 
     @SuppressLint("NotifyDataSetChanged")
     @Override
     public void deviceListUpdated() {
         notifyDataSetChanged();
+    }
+
+    @Override
+    public void individualDeviceUpdated(BLEDevice device) {
+        // Already handled in deviceUpdated
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

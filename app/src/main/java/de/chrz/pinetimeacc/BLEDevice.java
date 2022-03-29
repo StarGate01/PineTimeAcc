@@ -2,6 +2,8 @@ package de.chrz.pinetimeacc;
 
 import android.bluetooth.BluetoothDevice;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
@@ -11,7 +13,7 @@ public class BLEDevice implements Comparable<BLEDevice> {
     private final String mAddress;
     private final BluetoothDevice mDevice;
     private boolean mConnected = false;
-    private BLEDeviceChangedListener listener;
+    private List<BLEDeviceChangedListener> listeners;
 
     static TaskRunner taskRunner = new TaskRunner();
 
@@ -38,6 +40,8 @@ public class BLEDevice implements Comparable<BLEDevice> {
         mName = name;
         mAddress = address;
         mDevice = device;
+
+        listeners = new ArrayList<>();
     }
 
     public String getName() {
@@ -55,19 +59,31 @@ public class BLEDevice implements Comparable<BLEDevice> {
     public void connect() {
         taskRunner.executeAsync(new ConnectTask(true), (result) -> {
            mConnected = result;
-           listener.deviceUpdated(this);
+           invokeDeviceUpdated(this);
         });
     }
 
     public void disconnect() {
         taskRunner.executeAsync(new ConnectTask(false), (result) -> {
             mConnected = result;
-            listener.deviceUpdated(this);
+            invokeDeviceUpdated(this);
         });
     }
 
-    public void setListener(BLEDeviceChangedListener listener) {
-        this.listener = listener;
+    public void addListener(BLEDeviceChangedListener listener) {
+        if(!listeners.contains(listener)) listeners.add(listener);
+    }
+
+    public void removeListener(BLEDeviceChangedListener listener) {
+        try {
+            listeners.remove(listener);
+        } catch (Exception ignored) { }
+    }
+
+    private void invokeDeviceUpdated(BLEDevice device) {
+        for (BLEDeviceChangedListener listener: listeners) {
+            listener.deviceUpdated(device);
+        }
     }
 
     @Override

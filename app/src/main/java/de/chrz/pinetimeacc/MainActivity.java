@@ -17,6 +17,8 @@ import de.chrz.pinetimeacc.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static BLEManager bleManager = new BLEManager();
+
     private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
     private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2;
 
