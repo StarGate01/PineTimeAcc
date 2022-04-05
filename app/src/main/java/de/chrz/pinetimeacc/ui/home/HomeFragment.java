@@ -75,7 +75,7 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
 
         LineGraphSeries<DataPoint> sn = new LineGraphSeries<>();
         series.add(sn);
-        // graph.getSecondScale().addSeries(sn);
+        graph.getSecondScale().addSeries(sn);
         graph.getSecondScale().setMinY(0);
         graph.getSecondScale().setMaxY(2);
         sn.setColor(Color.BLUE);

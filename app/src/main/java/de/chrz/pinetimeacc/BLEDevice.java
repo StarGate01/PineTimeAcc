@@ -9,6 +9,8 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -87,7 +89,7 @@ public class BLEDevice extends BluetoothGattCallback implements Comparable<BLEDe
     public void onServicesDiscovered(BluetoothGatt gatt, int status) {
         try {
             if(status == BluetoothGatt.GATT_SUCCESS) {
-                gatt.requestMtu(256);
+                gatt.requestMtu(207);
             } else {
                 gatt.disconnect();
             }
@@ -130,8 +132,8 @@ public class BLEDevice extends BluetoothGattCallback implements Comparable<BLEDe
                 double[][] res = new double[(buf.length - 6) / 6][4];
                 for(int i=0; i<res.length; i++) {
                     for(int j=0; j<3; j++) {
-                        int offset = (i * 6) + (j * 2);
-                        res[i][j] = (double)((short)((buf[offset + 1] << 8) | buf[offset])) / 64.0 ;
+                        res[i][j] = ((double) ByteBuffer.wrap(buf, (i * 6) + (j * 2), 2)
+                                .order(ByteOrder.LITTLE_ENDIAN).getShort()) / 1024.0;
                     }
                     res[i][3] = Math.sqrt((res[i][0] * res[i][0]) + (res[i][1] * res[i][1]) + (res[i][2] * res[i][2]));
                 }
