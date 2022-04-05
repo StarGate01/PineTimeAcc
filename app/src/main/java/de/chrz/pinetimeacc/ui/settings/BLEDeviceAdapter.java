@@ -91,10 +91,10 @@ public class BLEDeviceAdapter extends
     public void individualDeviceUpdated(BLEDevice device) { }
 
     @Override
-    public void dataIncoming(double[] data) { }
+    public void dataIncoming(double[][] data) { }
 
     @Override
-    public void individualDataIncoming(double[] data) { }
+    public void individualDataIncoming(double[][] data) { }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView nameTextView;

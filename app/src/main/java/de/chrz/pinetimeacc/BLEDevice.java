@@ -85,6 +85,17 @@ public class BLEDevice extends BluetoothGattCallback implements Comparable<BLEDe
 
     @Override
     public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+        try {
+            if(status == BluetoothGatt.GATT_SUCCESS) {
+                gatt.requestMtu(256);
+            } else {
+                gatt.disconnect();
+            }
+        } catch (SecurityException ignored) { }
+    }
+
+    @Override
+    public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
         boolean success = false;
 
         try {
@@ -103,23 +114,29 @@ public class BLEDevice extends BluetoothGattCallback implements Comparable<BLEDe
 
         if(success) {
             this.gatt = gatt;
+            invokeDeviceUpdated();
         } else {
             try {
                 gatt.disconnect();
             } catch (SecurityException ignored) { }
         }
-
-        invokeDeviceUpdated();
     }
 
     @Override
     public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
         if(characteristic.getUuid().equals(motionUuidChar)) {
-            double x = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_SINT16, 0) / 1000.0;
-            double y = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_SINT16, 2) / 1000.0;
-            double z = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_SINT16, 4) / 1000.0;
-            double mag = Math.sqrt((x*x) + (y*y) + (z*z));
-            invokeDataIncoming(new double[] { x, y, z, mag });
+            byte[] buf = characteristic.getValue();
+            if(buf.length > 0) {
+                double[][] res = new double[(buf.length - 6) / 6][4];
+                for(int i=0; i<res.length; i++) {
+                    for(int j=0; j<3; j++) {
+                        int offset = (i * 6) + (j * 2);
+                        res[i][j] = (double)((short)((buf[offset + 1] << 8) | buf[offset])) / 64.0 ;
+                    }
+                    res[i][3] = Math.sqrt((res[i][0] * res[i][0]) + (res[i][1] * res[i][1]) + (res[i][2] * res[i][2]));
+                }
+                invokeDataIncoming(res);
+            }
         }
     }
 
@@ -139,7 +156,7 @@ public class BLEDevice extends BluetoothGattCallback implements Comparable<BLEDe
         }
     }
 
-    private void invokeDataIncoming(double[] data) {
+    private void invokeDataIncoming(double[][] data) {
         for (BLEDeviceChangedListener listener: listeners) {
             listener.dataIncoming(data);
         }

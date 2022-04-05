@@ -96,7 +96,7 @@ public class BLEManager extends ScanCallback implements BLEDeviceChangedListener
         }
     }
 
-    private void invokeDataIncoming(double[] data) {
+    private void invokeDataIncoming(double[][] data) {
         for (BLEManagerChangedListener listener: listeners) {
             listener.individualDataIncoming(data);
         }
@@ -112,7 +112,7 @@ public class BLEManager extends ScanCallback implements BLEDeviceChangedListener
     }
 
     @Override
-    public void dataIncoming(double[] data) { invokeDataIncoming(data); }
+    public void dataIncoming(double[][] data) { invokeDataIncoming(data); }
 
     @Override
     public void onScanResult(int callbackType, ScanResult result) {

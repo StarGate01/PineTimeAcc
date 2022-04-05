@@ -2,6 +2,8 @@ package de.chrz.pinetimeacc.ui.home;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -33,11 +35,13 @@ import de.chrz.pinetimeacc.databinding.FragmentHomeBinding;
 public class HomeFragment extends Fragment implements BLEManagerChangedListener {
 
     private List<LineGraphSeries<DataPoint>> series;
-    private int seriesTime = 100;
+    private int seriesTime = 2000;
     private int seriesCount = 0;
 
     private HomeViewModel homeViewModel;
     private GraphView graph;
+
+    private Handler mainHandler;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -45,6 +49,8 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
 
         FragmentHomeBinding binding = FragmentHomeBinding.inflate(inflater, container, false);
         View v = binding.getRoot();
+
+        mainHandler = new Handler(Looper.getMainLooper());
 
         final TextView textTitle = binding.textActivetitle;
         homeViewModel.getTitle().observe(getViewLifecycleOwner(), textTitle::setText);
@@ -69,7 +75,7 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
 
         LineGraphSeries<DataPoint> sn = new LineGraphSeries<>();
         series.add(sn);
-        graph.getSecondScale().addSeries(sn);
+        // graph.getSecondScale().addSeries(sn);
         graph.getSecondScale().setMinY(0);
         graph.getSecondScale().setMaxY(2);
         sn.setColor(Color.BLUE);
@@ -152,23 +158,29 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
     }
 
     @Override
-    public void individualDataIncoming(double[] data) {
-        int i = 0;
-        if(seriesCount >= seriesTime) {
-            for (LineGraphSeries<DataPoint> s: series) {
-                s.resetData(new DataPoint[] { new DataPoint(0, data[i]) });
-                i++;
+    public void individualDataIncoming(double[][] data) {
+        // Defer to main thread
+        Runnable updateGraph = () -> {
+            for (double[] datum : data) {
+                int i = 0;
+                if (seriesCount >= seriesTime) {
+                    for (LineGraphSeries<DataPoint> s : series) {
+                        s.resetData(new DataPoint[]{new DataPoint(0, datum[i])});
+                        i++;
+                    }
+                    seriesCount = 1;
+                } else {
+                    for (LineGraphSeries<DataPoint> s : series) {
+                        s.appendData(new DataPoint(seriesCount, datum[i]), true, seriesCount + 1);
+                        i++;
+                    }
+                    seriesCount++;
+                }
             }
-            seriesCount = 1;
-        } else {
-            for (LineGraphSeries<DataPoint> s: series) {
-                s.appendData(new DataPoint(seriesCount, data[i]), true, seriesCount + 1);
-                i++;
-            }
-            seriesCount++;
-        }
-        graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(seriesTime);
+            graph.getViewport().setMinX(0);
+            graph.getViewport().setMaxX(seriesTime);
+        };
+        mainHandler.post(updateGraph);
     }
 
 }
