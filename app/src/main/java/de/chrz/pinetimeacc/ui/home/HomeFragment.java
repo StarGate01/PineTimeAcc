@@ -13,7 +13,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -23,6 +22,8 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
@@ -35,11 +36,13 @@ import de.chrz.pinetimeacc.databinding.FragmentHomeBinding;
 public class HomeFragment extends Fragment implements BLEManagerChangedListener {
 
     private List<LineGraphSeries<DataPoint>> series;
+    private LinkedList<double[]> seriesData;
+    private final int filterSize = 10;
     private int seriesTime = 2000;
-    private int seriesCount = 0;
+    private long seriesCount = 0;
 
     private HomeViewModel homeViewModel;
-    private GraphView graph;
+    private GraphView graph, graph_norm;
 
     private Handler mainHandler;
 
@@ -60,6 +63,7 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
         homeViewModel.getFreq().observe(getViewLifecycleOwner(), textFreq::setText);
 
         graph = v.findViewById(R.id.graph);
+        graph_norm = v.findViewById(R.id.graph_norm);
         series = new ArrayList<>();
         for(int i=0; i<3; i++) {
             LineGraphSeries<DataPoint> s = new LineGraphSeries<>();
@@ -68,28 +72,31 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
         }
         series.get(0).setColor(Color.RED);
         series.get(0).setTitle("X");
-        series.get(1).setColor(Color.GREEN);
+        series.get(1).setColor(Color.rgb(0, 200, 70));
         series.get(1).setTitle("Y");
         series.get(2).setColor(Color.YELLOW);
         series.get(2).setTitle("Z");
 
-        LineGraphSeries<DataPoint> sn = new LineGraphSeries<>();
-        series.add(sn);
-        graph.getSecondScale().addSeries(sn);
-        graph.getSecondScale().setMinY(0);
-        graph.getSecondScale().setMaxY(2);
-        sn.setColor(Color.BLUE);
-        sn.setTitle("Mag");
-        graph.getGridLabelRenderer().setVerticalLabelsSecondScaleColor(Color.BLUE);
-
         graph.getLegendRenderer().setVisible(true);
         graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.BOTTOM);
         graph.getViewport().setYAxisBoundsManual(true);
-        graph.getViewport().setMaxY(1.2);
-        graph.getViewport().setMinY(-1.2);
+        graph.getViewport().setMaxY(2.0);
+        graph.getViewport().setMinY(-2.0);
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMaxX(seriesTime);
         graph.getViewport().setMinX(0);
+
+        LineGraphSeries<DataPoint> sn = new LineGraphSeries<>();
+        series.add(sn);
+        graph_norm.addSeries(sn);
+        sn.setColor(Color.rgb(0, 175, 255));
+
+        graph_norm.getViewport().setYAxisBoundsManual(true);
+        graph_norm.getViewport().setMaxY(2.0);
+        graph_norm.getViewport().setMinY(0.0);
+        graph_norm.getViewport().setXAxisBoundsManual(true);
+        graph_norm.getViewport().setMaxX(seriesTime);
+        graph_norm.getViewport().setMinX(0);
 
         EditText timeWindow = v.findViewById(R.id.edit_timewindow);
         timeWindow.setText(String.format(Locale.getDefault(), "%d", seriesTime));
@@ -108,29 +115,24 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
                     seriesTime = 10;
                 }
 
-                graph.getViewport().setMinX(0);
-                graph.getViewport().setMaxX(seriesTime);
+                graph.getViewport().setMinX(seriesCount - seriesTime);
+                graph.getViewport().setMaxX(seriesCount);
+                graph_norm.getViewport().setMinX(seriesCount - seriesTime);
+                graph_norm.getViewport().setMaxX(seriesCount);
             }
 
             @Override
             public void afterTextChanged(Editable editable) { }
         });
 
-        SwitchCompat switchXYZ = v.findViewById(R.id.switch_xyzdata);
-        switchXYZ.setOnCheckedChangeListener((compoundButton, b) -> {
-
-        });
-        SwitchCompat switchMag = v.findViewById(R.id.switch_magnitude);
-        switchMag.setOnCheckedChangeListener((compoundButton, b) -> {
-
-        });
-
         MainActivity main = (MainActivity)getActivity();
         if(main != null) {
-            main.bleManager.addListener(this);
+            MainActivity.bleManager.addListener(this);
         }
 
         updateTitle();
+
+        seriesData = new LinkedList<>();
 
         return v;
     }
@@ -138,7 +140,7 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
     private void updateTitle() {
         MainActivity main = (MainActivity)getActivity();
         if(main != null) {
-            BLEDevice activeDevice = main.bleManager.getActiveDevice();
+            BLEDevice activeDevice = MainActivity.bleManager.getActiveDevice();
             if (activeDevice != null) {
                 homeViewModel.getTitle().postValue(activeDevice.getName());
             } else {
@@ -162,23 +164,38 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
         // Defer to main thread
         Runnable updateGraph = () -> {
             for (double[] datum : data) {
-                int i = 0;
-                if (seriesCount >= seriesTime) {
-                    for (LineGraphSeries<DataPoint> s : series) {
-                        s.resetData(new DataPoint[]{new DataPoint(0, datum[i])});
-                        i++;
+                double[] filtered = new double[4];
+                if(seriesData.size() >= filterSize) {
+                    Iterator<double[]> iterator = seriesData.descendingIterator();
+                    for(int i=0; i<filterSize; i++) {
+                        double[] part = iterator.next();
+                        for(int j=0; j<3; j++) filtered[j] += part[j];
                     }
-                    seriesCount = 1;
+                    for(int j=0; j<3; j++) filtered[j] /= filterSize;
                 } else {
-                    for (LineGraphSeries<DataPoint> s : series) {
-                        s.appendData(new DataPoint(seriesCount, datum[i]), true, seriesCount + 1);
-                        i++;
-                    }
-                    seriesCount++;
+                    filtered = datum;
                 }
+
+                seriesData.add(datum);
+                while(seriesData.size() > seriesTime) seriesData.poll();
+
+                int i = 0;
+                for (LineGraphSeries<DataPoint> s : series) {
+                    if(i < 3) {
+                        s.appendData(new DataPoint(seriesCount, filtered[i]), true, seriesTime);
+                    } else {
+                        double norm = Math.sqrt((filtered[0] * filtered[0]) +
+                                (filtered[1] * filtered[1]) + (filtered[2] * filtered[2]));
+                        s.appendData(new DataPoint(seriesCount, norm), true, seriesTime);
+                    }
+                    i++;
+                }
+                seriesCount++;
             }
-            graph.getViewport().setMinX(0);
-            graph.getViewport().setMaxX(seriesTime);
+            graph.getViewport().setMinX(seriesCount - seriesTime);
+            graph.getViewport().setMaxX(seriesCount);
+            graph_norm.getViewport().setMinX(seriesCount - seriesTime);
+            graph_norm.getViewport().setMaxX(seriesCount);
         };
         mainHandler.post(updateGraph);
     }

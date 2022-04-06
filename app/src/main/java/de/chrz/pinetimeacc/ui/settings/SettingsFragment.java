@@ -27,10 +27,10 @@ public class SettingsFragment extends Fragment {
         MainActivity main = (MainActivity)getActivity();
         if(main != null) {
             if (adapter == null)
-                adapter = new BLEDeviceAdapter(main.bleManager, this.getActivity());
+                adapter = new BLEDeviceAdapter(MainActivity.bleManager, this.getActivity());
             rvDevices.setAdapter(adapter);
             rvDevices.setLayoutManager(new LinearLayoutManager(this.getContext()));
-            main.bleManager.beginScan();
+            MainActivity.bleManager.beginScan();
         }
 
         return v;

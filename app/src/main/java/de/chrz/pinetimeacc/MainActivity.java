@@ -7,6 +7,7 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -17,22 +18,20 @@ import de.chrz.pinetimeacc.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
 
-    public BLEManager bleManager;
+    public static BLEManager bleManager = new BLEManager();
 
     private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
     private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        if(bleManager == null) bleManager = new BLEManager(getApplicationContext());
-
         super.onCreate(savedInstanceState);
 
         ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_home, R.id.navigation_settings).build();
+                R.id.navigation_home, R.id.navigation_settings, R.id.navigation_about).build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
@@ -74,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
                 builder.setOnDismissListener(dialog -> { });
                 builder.show();
             }
-
         }
     }
 

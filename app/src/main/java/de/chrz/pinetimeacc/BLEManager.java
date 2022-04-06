@@ -7,7 +7,6 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
-import android.content.Context;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +17,6 @@ public class BLEManager extends ScanCallback implements BLEDeviceChangedListener
     private final BluetoothLeScanner scanner;
     private final List<ScanFilter> filters;
     private final ScanSettings settings;
-    private final Context context;
 
     private final List<BLEDevice> devices;
     private final List<BLEManagerChangedListener> listeners;
@@ -50,9 +48,7 @@ public class BLEManager extends ScanCallback implements BLEDeviceChangedListener
 
     }
 
-    public BLEManager(Context context) {
-        this.context = context;
-
+    public BLEManager() {
         devices = new ArrayList<>();
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -119,7 +115,7 @@ public class BLEManager extends ScanCallback implements BLEDeviceChangedListener
         BluetoothDevice d = result.getDevice();
         try {
             if(d.getName() != null && !d.getName().isEmpty()) {
-                BLEDevice device = new BLEDevice(d.getName(), d.getAddress(), d, context);
+                BLEDevice device = new BLEDevice(d.getName(), d.getAddress(), d);
                 if (!devices.contains(device)) {
                     devices.add(device);
                     device.addListener(this);

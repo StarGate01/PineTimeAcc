@@ -49,7 +49,8 @@ public class BLEDeviceAdapter extends
         TextView addressTextView = holder.addressTextView;
         addressTextView.setText(device.getAddress());
         Button connectButton = holder.connectButton;
-        connectButton.setText(device.isConnected() ? "Disconnect" : "Connect");
+        connectButton.setText(device.isConnected() ?
+                activity.getString(R.string.disconnect) : activity.getString(R.string.connect));
 
         if(activeDevice != null) {
             connectButton.setEnabled(device == activeDevice);
@@ -58,8 +59,10 @@ public class BLEDeviceAdapter extends
         }
 
         connectButton.setOnClickListener(view -> {
+            connectButton.setEnabled(false);
             if(!device.isConnected()) {
-                device.connect();
+                connectButton.setText(R.string.connecting);
+                device.connect(activity.getApplicationContext());
             } else {
                 device.disconnect();
             }

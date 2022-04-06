@@ -14,7 +14,13 @@
     <fragment
         android:id="@+id/navigation_settings"
         android:name="de.chrz.pinetimeacc.ui.settings.SettingsFragment"
-        android:label="@string/title_settings"
+        android:label="@string/devices"
         tools:layout="@layout/fragment_settings" />
+
+    <fragment
+        android:id="@+id/navigation_about"
+        android:name="de.chrz.pinetimeacc.ui.home.AboutFragment"
+        android:label="@string/about"
+        tools:layout="@layout/fragment_about" />
 
 </navigation>

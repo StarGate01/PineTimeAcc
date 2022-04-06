@@ -21,7 +21,6 @@ public class BLEDevice extends BluetoothGattCallback implements Comparable<BLEDe
     private final String name;
     private final String address;
     private final BluetoothDevice device;
-    private final Context context;
     private BluetoothGatt gatt;
 
     private final List<BLEDeviceChangedListener> listeners;
@@ -34,11 +33,10 @@ public class BLEDevice extends BluetoothGattCallback implements Comparable<BLEDe
         return name.compareTo(bleDevice.getName());
     }
 
-    public BLEDevice(String name, String address, BluetoothDevice device, Context context) {
+    public BLEDevice(String name, String address, BluetoothDevice device) {
         this.name = name;
         this.address = address;
         this.device = device;
-        this.context = context;
 
         listeners = new ArrayList<>();
     }
@@ -55,7 +53,7 @@ public class BLEDevice extends BluetoothGattCallback implements Comparable<BLEDe
         return gatt != null;
     }
 
-    public void connect() {
+    public void connect(Context context) {
         try {
             device.connectGatt(context, false, this);
         } catch (SecurityException ignored) { }
@@ -129,13 +127,12 @@ public class BLEDevice extends BluetoothGattCallback implements Comparable<BLEDe
         if(characteristic.getUuid().equals(motionUuidChar)) {
             byte[] buf = characteristic.getValue();
             if(buf.length > 0) {
-                double[][] res = new double[(buf.length - 6) / 6][4];
+                double[][] res = new double[(buf.length - 6) / 6][3];
                 for(int i=0; i<res.length; i++) {
                     for(int j=0; j<3; j++) {
                         res[i][j] = ((double) ByteBuffer.wrap(buf, (i * 6) + (j * 2), 2)
                                 .order(ByteOrder.LITTLE_ENDIAN).getShort()) / 1024.0;
                     }
-                    res[i][3] = Math.sqrt((res[i][0] * res[i][0]) + (res[i][1] * res[i][1]) + (res[i][2] * res[i][2]));
                 }
                 invokeDataIncoming(res);
             }
