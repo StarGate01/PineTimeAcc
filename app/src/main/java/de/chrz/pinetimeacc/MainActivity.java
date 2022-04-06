@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Menu;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -46,13 +47,13 @@ public class MainActivity extends AppCompatActivity {
                         builder.setPositiveButton(android.R.string.ok, null);
                         builder.setOnDismissListener(dialog -> requestPermissions(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, PERMISSION_REQUEST_BACKGROUND_LOCATION));
                         builder.show();
-                    }
-                    else {
+                    } else {
                         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                         builder.setTitle("Functionality limited");
                         builder.setMessage("Since background location access has not been granted, this app will not be able to discover beacons in the background.  Please go to Settings -> Applications -> Permissions and grant background location access to this app.");
                         builder.setPositiveButton(android.R.string.ok, null);
-                        builder.setOnDismissListener(dialog -> { });
+                        builder.setOnDismissListener(dialog -> {
+                        });
                         builder.show();
                     }
                 }
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
             if (!this.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.ACCESS_BACKGROUND_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
                 } else {
                     requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION);
                 }
@@ -70,10 +71,17 @@ public class MainActivity extends AppCompatActivity {
                 builder.setTitle("Functionality limited");
                 builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons.  Please go to Settings -> Applications -> Permissions and grant location access to this app.");
                 builder.setPositiveButton(android.R.string.ok, null);
-                builder.setOnDismissListener(dialog -> { });
+                builder.setOnDismissListener(dialog -> {
+                });
                 builder.show();
             }
         }
+
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return true;
     }
 
 }
