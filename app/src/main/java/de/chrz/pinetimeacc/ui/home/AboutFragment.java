@@ -11,7 +11,6 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import de.chrz.pinetimeacc.R;
-import de.chrz.pinetimeacc.databinding.FragmentHomeBinding;
 
 public class AboutFragment extends Fragment {
 
@@ -21,6 +20,9 @@ public class AboutFragment extends Fragment {
 
         TextView gh = v.findViewById(R.id.textView_github);
         gh.setMovementMethod(LinkMovementMethod.getInstance());
+
+        TextView gh_graph = v.findViewById(R.id.textView_github2);
+        gh_graph.setMovementMethod(LinkMovementMethod.getInstance());
 
         return v;
     }
