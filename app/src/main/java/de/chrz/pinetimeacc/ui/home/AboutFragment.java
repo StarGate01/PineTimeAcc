@@ -24,6 +24,12 @@ public class AboutFragment extends Fragment {
         TextView gh_graph = v.findViewById(R.id.textView_github2);
         gh_graph.setMovementMethod(LinkMovementMethod.getInstance());
 
+        TextView url_icon = v.findViewById(R.id.textView_icon1);
+        url_icon.setMovementMethod(LinkMovementMethod.getInstance());
+
+        TextView url_icon2 = v.findViewById(R.id.textView_icon2);
+        gh_graph.setMovementMethod(LinkMovementMethod.getInstance());
+
         return v;
     }
 

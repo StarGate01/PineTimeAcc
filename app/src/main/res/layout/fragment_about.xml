@@ -64,6 +64,39 @@
                 android:layout_margin="10dp"
                 android:text="@string/license_graph" />
 
+            <TextView
+                android:id="@+id/textView6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="Icons"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/textView_icon1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="@string/icon_url1"
+                android:textColor="#00838F"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/textView_icon2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="@string/icon_url2"
+                android:textColor="#00838F"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/textView12"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="@string/license_icons" />
+
         </LinearLayout>
     </ScrollView>
 
