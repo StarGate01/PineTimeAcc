@@ -8,8 +8,8 @@
         <entry key="app/src/main/res/drawable/ic_home_black_24dp.xml" value="0.336" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.336" />
         <entry key="app/src/main/res/drawable/ic_notifications_black_24dp.xml" value="0.336" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.33" />
-        <entry key="app/src/main/res/layout/fragment_about.xml" value="0.2216624685138539" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.25989672977624784" />
+        <entry key="app/src/main/res/layout/fragment_about.xml" value="0.12505125051250512" />
         <entry key="app/src/main/res/layout/fragment_dashboard.xml" value="0.4005208333333333" />
         <entry key="app/src/main/res/layout/fragment_home.xml" value="0.33" />
         <entry key="app/src/main/res/layout/fragment_notifications.xml" value="0.4005208333333333" />

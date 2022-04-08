@@ -30,6 +30,9 @@ public class AboutFragment extends Fragment {
         TextView url_icon2 = v.findViewById(R.id.textView_icon2);
         url_icon2.setMovementMethod(LinkMovementMethod.getInstance());
 
+        TextView url_so = v.findViewById(R.id.textView_so);
+        url_so.setMovementMethod(LinkMovementMethod.getInstance());
+
         return v;
     }
 

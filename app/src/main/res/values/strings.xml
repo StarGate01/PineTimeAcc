@@ -63,4 +63,11 @@
     <string name="signal_sampling_configuration">Signal sampling configuration</string>
     <string name="z_score_peak_detection">Z-Score peak detection</string>
     <string name="plot_display_configuration">Plot display configuration</string>
+    <string name="so_license">Brakel, J.P.G. van (2014). \'Robust peak detection algorithm using z-scores\'. Stack Overflow. Available at: <a href="https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data/22640362#22640362">https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data/22640362#22640362</a> (version: 2020–11–08).</string>
+    <string name="algorithms">Algorithms</string>
+    <string name="icons">Icons</string>
+    <string name="trigger">Trigger</string>
+    <string name="rising_edge">Rising edge</string>
+    <string name="falling_edge">Falling edge</string>
+    <string name="bpm">bpm</string>
 </resources>

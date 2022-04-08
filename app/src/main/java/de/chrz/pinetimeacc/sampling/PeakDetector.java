@@ -1,7 +1,7 @@
 package de.chrz.pinetimeacc.sampling;
 
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 // Based on https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data/22640362#22640362
 
@@ -11,7 +11,7 @@ public class PeakDetector {
     public double threshold = 2.0; // std. deviations
     public double influence = 0.25; // percent
 
-    public void process(LinkedList<Sample> oldSamples, Sample newSample) {
+    public void process(ConcurrentLinkedDeque<Sample> oldSamples, Sample newSample) {
         Sample prev = oldSamples.getLast();
 
         // Check threshold
@@ -27,7 +27,7 @@ public class PeakDetector {
         computeAvgStd(newSample, prev.filteredMag, prev.filteredMag * prev.filteredMag, oldSamples, lag);
     }
 
-    public static void computeAvgStd(Sample target, double sumMag, double sumMagSquare, LinkedList<Sample> set, int setSize) {
+    public static void computeAvgStd(Sample target, double sumMag, double sumMagSquare, ConcurrentLinkedDeque<Sample> set, int setSize) {
         if(set != null) {
             Iterator<Sample> iterate = set.descendingIterator();
             for (int i = 0; i < setSize; i++) {

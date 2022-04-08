@@ -13,6 +13,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -23,22 +24,23 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Locale;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import de.chrz.pinetimeacc.ble.BLEDevice;
-import de.chrz.pinetimeacc.ble.BLEManagerChangedListener;
 import de.chrz.pinetimeacc.MainActivity;
 import de.chrz.pinetimeacc.R;
+import de.chrz.pinetimeacc.ble.BLEDevice;
+import de.chrz.pinetimeacc.ble.BLEManagerChangedListener;
 import de.chrz.pinetimeacc.databinding.FragmentHomeBinding;
 import de.chrz.pinetimeacc.sampling.PeakDetector;
 import de.chrz.pinetimeacc.sampling.Sample;
 
 public class HomeFragment extends Fragment implements BLEManagerChangedListener {
 
-    private final LinkedList<Sample> seriesData = new LinkedList<>();
-    private final ConcurrentLinkedQueue<Sample> jitterData = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedDeque<Sample> seriesData = new ConcurrentLinkedDeque<>();
+    private final ConcurrentLinkedDeque<Sample> jitterData = new ConcurrentLinkedDeque<>();
 
     // Signal configuration
     private int filterSize = 4; // samples
@@ -47,20 +49,23 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
     private int sampleRate = 200; // Hertz
 
     // Signal status
-    private long jitterDropped = 0; // samples
+    private final AtomicInteger jitterDropped = new AtomicInteger(); // samples
     private long seriesCount = 0; // samples
     private final PeakDetector peakDetector = new PeakDetector();
+    private boolean triggerRising = true;
+    private boolean triggerFalling = false;
 
     // GUI performance
     private int guiMaxPoints = 200; // count
     private int guiDownsample; // count
-    private int guiUpdateFreq = 40; // hertz
-    private final int chartLineWidth = 2; // pixel
+    private int guiUpdateFreq = 25; // ms
+    private final int guiLabelUpdateFreq = 250; // ms
 
     private HomeViewModel homeViewModel;
     private GraphView graph;
     private LineGraphSeries<DataPoint> seriesMag, seriesStdFilteredMag, seriesStdFilteredMag2, seriesPeaks;
     private Handler mainHandler;
+    private Runnable refreshTimer, refreshLabelTimer;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -72,12 +77,11 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
 
         setupLabels(binding);
         setupGraph(v);
-        setupEditText(v);
+        setupInput(v);
 
         MainActivity main = (MainActivity)getActivity();
         if(main != null)  MainActivity.bleManager.addListener(this);
 
-        startTimer();
         updateTitle();
         updateUIDownsample();
 
@@ -107,6 +111,7 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMaxX(timeWindow);
         graph.getViewport().setMinX(0);
+        int chartLineWidth = 2; // pixel
 
         seriesMag = new LineGraphSeries<>();
         seriesMag.setColor(Color.rgb(0, 175, 255));
@@ -133,7 +138,7 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
         graph.addSeries(seriesPeaks);
     }
 
-    private void setupEditText(View v) {
+    private void setupInput(View v) {
         EditText editTimeWindow = v.findViewById(R.id.edit_timewindow);
         editTimeWindow.setText(String.format(Locale.getDefault(), "%d", timeWindow));
         editTimeWindow.addTextChangedListener(new TextWatcher() {
@@ -322,17 +327,42 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
             @Override
             public void afterTextChanged(Editable editable) { }
         });
+
+        SwitchCompat switchRising = v.findViewById(R.id.switch_rising);
+        switchRising.setChecked(triggerRising);
+        switchRising.setOnCheckedChangeListener((compoundButton, b) -> triggerRising = b);
+
+        SwitchCompat switchFalling = v.findViewById(R.id.switch_falling);
+        switchFalling.setChecked(triggerFalling);
+        switchFalling.setOnCheckedChangeListener((compoundButton, b) -> triggerFalling = b);
     }
 
-    private void startTimer() {
-        Runnable refreshTimer = new Runnable() {
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshTimer = new Runnable() {
             @Override
             public void run() {
                 processJitter();
                 mainHandler.postDelayed(this, guiUpdateFreq);
             }
         };
+        refreshLabelTimer = new Runnable() {
+            @Override
+            public void run() {
+                updateLabels();
+                mainHandler.postDelayed(this, guiLabelUpdateFreq);
+            }
+        };
         mainHandler.postDelayed(refreshTimer, guiUpdateFreq);
+        mainHandler.postDelayed(refreshLabelTimer, guiLabelUpdateFreq);
+    }
+
+    @Override
+    public void onPause() {
+        mainHandler.removeCallbacks(refreshTimer);
+        mainHandler.removeCallbacks(refreshLabelTimer);
+        super.onPause();
     }
 
     private void updateTitle() {
@@ -375,8 +405,47 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
             else break;
         }
         updateGraphScale();
+    }
+
+    private void updateLabels() {
         homeViewModel.getJitter().postValue(String.format(Locale.getDefault(),
-                "%d / %d", jitterDropped, jitterData.size()));
+                "%d / %d", jitterDropped.get(), jitterData.size()));
+
+        // Measure distances between triggers
+        ArrayList<Integer> distances = new ArrayList<>();
+        int lastTriggerSample = -1;
+        boolean lastState = false;
+        int sampleCount = 0;
+        for (Sample sample: seriesData) {
+            if(!lastState &&
+                    ((triggerRising && sample.peak == +1) ||
+                    (triggerFalling && sample.peak == -1))) {
+                lastState = true;
+                if(lastTriggerSample != -1) {
+                    distances.add(sampleCount - lastTriggerSample);
+                }
+                lastTriggerSample = sampleCount;
+            } else {
+                lastState = false;
+            }
+            sampleCount++;
+        }
+
+        // Find size of latest distance
+        String delta = "N/A";
+        if(distances.size() > 0) delta = String.format(Locale.getDefault(), "%d", distances.get(distances.size() - 1));
+        homeViewModel.getDelta().postValue(delta);
+
+        // Compute average frequency in bpm
+        String freq = "N/A";
+        if(distances.size() > 0) {
+            double frequency = 0;
+            for (int distance : distances) frequency += distance;
+            frequency /= (double) distances.size();
+            frequency = 60.0 / (frequency * (1.0 / (double)sampleRate));
+            freq = String.format(Locale.getDefault(), "%.2f", frequency);
+        }
+        homeViewModel.getFreq().postValue(freq);
     }
 
     @Override
@@ -416,7 +485,7 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
             seriesData.add(datum);
             while(seriesData.size() > timeWindow) seriesData.poll();
             if(jitterData.size() < jitterSize) jitterData.add(datum);
-            else jitterDropped++;
+            else jitterDropped.incrementAndGet();
         }
     }
 
