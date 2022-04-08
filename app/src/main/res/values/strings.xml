@@ -30,4 +30,34 @@
     <string name="icon_url1"><a href="https://wiki.pine64.org/wiki/PINE64_brand_and_logo">https://wiki.pine64.org/wiki/PINE64_brand_and_logo</a></string>
     <string name="icon_url2"><a href="https://materialdesignicons.com/">https://materialdesignicons.com</a></string>
     <string name="license_icons">watch by Google @Google\nchart-line by Austin Andrews @Templarian\ninformation-outline by Google @Google\n</string>
+    <string name="filter_size">Filter size:</string>
+    <string name="filter_size2">Filter size</string>
+    <string name="sample_rate2">Sample rate</string>
+    <string name="sample_rate">Sample rate:</string>
+    <string name="jitter_size">Jitter size:</string>
+    <string name="jitter_size2">Jitter size</string>
+    <string name="peak_frequency">Peak frequency:</string>
+    <string name="jitter">Jitter:</string>
+    <string name="dropped_jitter">Dropped / Jitter:</string>
+    <string name="times">times</string>
+    <string name="ui_downsample">UI downsample:</string>
+    <string name="ui_configuration">UI configuration</string>
+    <string name="signal_configuration">Signal configuration</string>
+    <string name="amount">amount</string>
+    <string name="refresh_rate2">Refresh rate</string>
+    <string name="max_points2">Max. Points</string>
+    <string name="refresh_rate">Refresh rate:</string>
+    <string name="max_points">Max. Points:</string>
+    <string name="jitter_buffer">Jitter buffer:</string>
+    <string name="detection_configuration">Detection configuration</string>
+    <string name="avg_size2">Avg. Size</string>
+    <string name="avg_size">Avg. Size:</string>
+    <string name="threshold">Threshold:</string>
+    <string name="threshold2">Threshold</string>
+    <string name="deviation">σ</string>
+    <string name="influence">Influence:</string>
+    <string name="percent">%</string>
+    <string name="influence2">Influence</string>
+    <string name="lag">Lag:</string>
+    <string name="lag2">Lag</string>
 </resources>
