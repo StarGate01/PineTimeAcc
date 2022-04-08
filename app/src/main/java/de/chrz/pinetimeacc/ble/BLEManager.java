@@ -1,4 +1,4 @@
-package de.chrz.pinetimeacc;
+package de.chrz.pinetimeacc.ble;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -11,6 +11,9 @@ import android.bluetooth.le.ScanSettings;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+
+import de.chrz.pinetimeacc.TaskRunner;
+import de.chrz.pinetimeacc.sampling.Sample;
 
 public class BLEManager extends ScanCallback implements BLEDeviceChangedListener {
 
@@ -92,7 +95,7 @@ public class BLEManager extends ScanCallback implements BLEDeviceChangedListener
         }
     }
 
-    private void invokeDataIncoming(double[][] data) {
+    private void invokeDataIncoming(Sample[] data) {
         for (BLEManagerChangedListener listener: listeners) {
             listener.individualDataIncoming(data);
         }
@@ -108,7 +111,7 @@ public class BLEManager extends ScanCallback implements BLEDeviceChangedListener
     }
 
     @Override
-    public void dataIncoming(double[][] data) { invokeDataIncoming(data); }
+    public void dataIncoming(Sample[] data) { invokeDataIncoming(data); }
 
     @Override
     public void onScanResult(int callbackType, ScanResult result) {

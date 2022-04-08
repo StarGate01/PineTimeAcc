@@ -60,4 +60,7 @@
     <string name="influence2">Influence</string>
     <string name="lag">Lag:</string>
     <string name="lag2">Lag</string>
+    <string name="signal_sampling_configuration">Signal sampling configuration</string>
+    <string name="z_score_peak_detection">Z-Score peak detection</string>
+    <string name="plot_display_configuration">Plot display configuration</string>
 </resources>

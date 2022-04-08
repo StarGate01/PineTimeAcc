@@ -12,11 +12,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import de.chrz.pinetimeacc.BLEDevice;
-import de.chrz.pinetimeacc.BLEManager;
-import de.chrz.pinetimeacc.BLEManagerChangedListener;
+import de.chrz.pinetimeacc.ble.BLEDevice;
+import de.chrz.pinetimeacc.ble.BLEManager;
+import de.chrz.pinetimeacc.ble.BLEManagerChangedListener;
 import de.chrz.pinetimeacc.R;
-import de.chrz.pinetimeacc.BLEDeviceChangedListener;
+import de.chrz.pinetimeacc.ble.BLEDeviceChangedListener;
+import de.chrz.pinetimeacc.sampling.Sample;
 
 public class BLEDeviceAdapter extends
     RecyclerView.Adapter<BLEDeviceAdapter.ViewHolder> implements BLEDeviceChangedListener, BLEManagerChangedListener {
@@ -94,10 +95,10 @@ public class BLEDeviceAdapter extends
     public void individualDeviceUpdated(BLEDevice device) { }
 
     @Override
-    public void dataIncoming(double[][] data) { }
+    public void dataIncoming(Sample[] data) { }
 
     @Override
-    public void individualDataIncoming(double[][] data) { }
+    public void individualDataIncoming(Sample[] data) { }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView nameTextView;

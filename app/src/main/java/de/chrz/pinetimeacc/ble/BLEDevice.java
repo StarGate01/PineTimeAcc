@@ -1,4 +1,4 @@
-package de.chrz.pinetimeacc;
+package de.chrz.pinetimeacc.ble;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+
+import de.chrz.pinetimeacc.sampling.Sample;
 
 
 public class BLEDevice extends BluetoothGattCallback implements Comparable<BLEDevice> {
@@ -127,17 +129,23 @@ public class BLEDevice extends BluetoothGattCallback implements Comparable<BLEDe
         if(characteristic.getUuid().equals(motionUuidChar)) {
             byte[] buf = characteristic.getValue();
             if(buf.length > 0) {
-                double[][] res = new double[(buf.length - 6) / 6][3];
+                Sample[] res = new Sample[(buf.length - 6) / 6];
                 // Invert FIFO
-                for(int i=0; i<res.length; i++) {
-                    for(int j=0; j<3; j++) {
-                        res[i][j] = ((double) ByteBuffer.wrap(buf, (i * 6) + (j * 2), 2)
-                                .order(ByteOrder.LITTLE_ENDIAN).getShort()) / 1024.0;
-                    }
+                for(int k=0, i=res.length-1; k<res.length; k++, i--) {
+                    res[k] = new Sample();
+                    res[k].raw.x = decodeBufferValue(buf, i, 0);
+                    res[k].raw.y = decodeBufferValue(buf, i, 1);
+                    res[k].raw.z = decodeBufferValue(buf, i, 2);
                 }
                 invokeDataIncoming(res);
             }
         }
+    }
+
+    private double decodeBufferValue(byte[] buf, int frameIndex, int valueIndex) {
+        return ((double) ByteBuffer.wrap(buf,
+                (frameIndex * 6) + (valueIndex * 2), 2)
+                .order(ByteOrder.LITTLE_ENDIAN).getShort()) / 1024.0;
     }
 
     public void addListener(BLEDeviceChangedListener listener) {
@@ -156,7 +164,7 @@ public class BLEDevice extends BluetoothGattCallback implements Comparable<BLEDe
         }
     }
 
-    private void invokeDataIncoming(double[][] data) {
+    private void invokeDataIncoming(Sample[] data) {
         for (BLEDeviceChangedListener listener: listeners) {
             listener.dataIncoming(data);
         }

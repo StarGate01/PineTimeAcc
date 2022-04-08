@@ -1,4 +1,4 @@
-package de.chrz.pinetimeacc.ui.home;
+package de.chrz.pinetimeacc.ui.about;
 
 import android.os.Bundle;
 import android.text.method.LinkMovementMethod;
@@ -28,7 +28,7 @@ public class AboutFragment extends Fragment {
         url_icon.setMovementMethod(LinkMovementMethod.getInstance());
 
         TextView url_icon2 = v.findViewById(R.id.textView_icon2);
-        gh_graph.setMovementMethod(LinkMovementMethod.getInstance());
+        url_icon2.setMovementMethod(LinkMovementMethod.getInstance());
 
         return v;
     }
