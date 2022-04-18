@@ -70,4 +70,6 @@
     <string name="rising_edge">Rising edge</string>
     <string name="falling_edge">Falling edge</string>
     <string name="bpm">bpm</string>
+    <string name="min_delta">Min. delta</string>
+    <string name="min_delta2">Min. delta:</string>
 </resources>

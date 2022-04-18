@@ -54,6 +54,7 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
     private final PeakDetector peakDetector = new PeakDetector();
     private boolean triggerRising = true;
     private boolean triggerFalling = false;
+    private int minPeakDelta = 30; // milliseconds
 
     // GUI performance
     private int guiMaxPoints = 200; // count
@@ -328,6 +329,26 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
             public void afterTextChanged(Editable editable) { }
         });
 
+        EditText editDetPeakDelta = v.findViewById(R.id.edit_detpeakdelta);
+        editDetPeakDelta.setText(String.format(Locale.getDefault(), "%d", minPeakDelta));
+        editDetPeakDelta.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
+                try {
+                    int c = Integer.parseInt(charSequence.toString());
+                    minPeakDelta = Math.max(1, c);
+                } catch (NumberFormatException e) {
+                    minPeakDelta = 10;
+                }
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) { }
+
+            @Override
+            public void afterTextChanged(Editable editable) { }
+        });
+
         SwitchCompat switchRising = v.findViewById(R.id.switch_rising);
         switchRising.setChecked(triggerRising);
         switchRising.setOnCheckedChangeListener((compoundButton, b) -> triggerRising = b);
@@ -430,6 +451,8 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
             }
             sampleCount++;
         }
+        // Low-pass filter
+        distances.removeIf(p -> (double)p / (double)sampleRate < (double)minPeakDelta / 1000.0);
 
         // Find size of latest distance
         String delta = "N/A";
@@ -441,7 +464,7 @@ public class HomeFragment extends Fragment implements BLEManagerChangedListener 
         if(distances.size() > 0) {
             double frequency = 0;
             for (int distance : distances) frequency += distance;
-            frequency /= (double) distances.size();
+            frequency /= distances.size();
             frequency = 60.0 / (frequency * (1.0 / (double)sampleRate));
             freq = String.format(Locale.getDefault(), "%.2f", frequency);
         }

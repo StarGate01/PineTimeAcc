@@ -424,6 +424,38 @@
                     android:layout_height="match_parent">
 
                     <TextView
+                        android:id="@+id/textView2kcc2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/min_delta2" />
+
+                    <EditText
+                        android:id="@+id/edit_detpeakdelta"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:autofillHints=""
+                        android:ems="10"
+                        android:hint="@string/min_delta"
+                        android:inputType="number"
+                        android:minHeight="48dp"
+                        android:textColorHint="#757575" />
+
+                    <TextView
+                        android:id="@+id/textView2kec2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/ms" />
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
                         android:id="@+id/textView13"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
