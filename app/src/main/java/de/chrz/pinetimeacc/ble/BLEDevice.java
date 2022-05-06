@@ -130,12 +130,12 @@ public class BLEDevice extends BluetoothGattCallback implements Comparable<BLEDe
             byte[] buf = characteristic.getValue();
             if(buf.length > 0) {
                 Sample[] res = new Sample[(buf.length - 6) / 6];
-                // Invert FIFO
-                for(int k=0, i=res.length-1; k<res.length; k++, i--) {
+                // Invert FIFO ?
+                for(int k=0; k<res.length; k++) {
                     res[k] = new Sample();
-                    res[k].raw.x = decodeBufferValue(buf, i, 0);
-                    res[k].raw.y = decodeBufferValue(buf, i, 1);
-                    res[k].raw.z = decodeBufferValue(buf, i, 2);
+                    res[k].raw.x = decodeBufferValue(buf, k, 0);
+                    res[k].raw.y = decodeBufferValue(buf, k, 1);
+                    res[k].raw.z = decodeBufferValue(buf, k, 2);
                 }
                 invokeDataIncoming(res);
             }
