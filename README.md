@@ -8,7 +8,10 @@ This app is meant to be used with a Smartwatch running InfiniTime (https://githu
 Use Android Studio to build the project.
 
 ## Screenshots
-
-![Overview](screenshots/signal-2022-05-07-012613_002.png?raw=true "Overview")
-![Configuration](screenshots/signal-2022-05-07-012613_001.png?raw=true "Configuration")
-![Widescreen](screenshots/signal-2022-05-07-012613_003.png?raw=true "Widescreen")
+<table><tr><td>
+<img src="screenshots/signal-2022-05-07-012613_002.png?raw=true">
+  </td><td>
+<img src="screenshots/signal-2022-05-07-012613_001.png?raw=true">
+  </td></tr><tr><td colspan="2">
+<img src="screenshots/signal-2022-05-07-012613_003.png?raw=true" >
+  </td></tr></table>
